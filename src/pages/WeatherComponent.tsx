@@ -19,15 +19,19 @@ interface WeatherOptions {
     lat: string;
 }
 
-interface WeatherComponentProps {
-    options: WeatherOptions;
-}
-
 interface WeatherData {
     condition: string;
+    temperature: number;
+    unit: string;
+    conditionName: string;
+    location: string;
+    upcomming: {
+        condition: string;
+        day: string;
+    }[];
 }
 
-const WeatherComponent: React.FC<WeatherComponentProps> = (options) => {
+const WeatherComponent: React.FC<WeatherOptions> = (options) => {
     const { lat, lon } = options;
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
 
@@ -35,7 +39,9 @@ const WeatherComponent: React.FC<WeatherComponentProps> = (options) => {
         const fetchWeatherData = async () => {
             try {
                 const response = await axios.get(
-                    `http://localhost:${process.env.SERVER_PORT ?? 3030}/integration/weather?lat=${lat}&lon=${lon}`
+                    `http://localhost:${
+                        process.env.SERVER_PORT ?? 3030
+                    }/integration/weather?lat=${lat}&lon=${lon}`
                 );
                 setWeatherData(response.data.data);
             } catch (err) {
@@ -46,10 +52,15 @@ const WeatherComponent: React.FC<WeatherComponentProps> = (options) => {
         fetchWeatherData();
     }, [lat, lon]);
 
-    const getWeatherIcon = (condition: string, height: string, width: string, style: object) => {
-        const WeatherComponent = WeatherComponentMap[condition];
-        if (!WeatherComponent) return null;
-        return <WeatherComponent width={width} height={height} style={{ ...style }} />;
+    const getWeatherIcon = (
+        condition: string,
+        height: string,
+        width: string,
+        style: React.CSSProperties
+    ) => {
+        const WeatherIconComponent = WeatherComponentMap[condition];
+        if (!WeatherIconComponent) return null;
+        return <WeatherIconComponent width={width} height={height} style={style} />;
     };
 
     return (
@@ -64,7 +75,7 @@ const WeatherComponent: React.FC<WeatherComponentProps> = (options) => {
                             : "Loading..."}
                         <WeatherText>
                             <Temperature>
-                                {weatherData.temperature}&deg;{(weatherData.unit || "").toUpperCase()}
+                                {weatherData.temperature}&deg;{weatherData.unit.toUpperCase()}
                             </Temperature>
                             <ConditionName>{weatherData.conditionName}</ConditionName>
                         </WeatherText>
@@ -72,29 +83,28 @@ const WeatherComponent: React.FC<WeatherComponentProps> = (options) => {
                 </CurrentWeatherContainer>
                 <LocationTitle>{weatherData.location}</LocationTitle>
                 <UpcomingWeatherWrapper>
-                    {weatherData.upcomming.map((data) => {
-                        return (
-                            <span
+                    {weatherData.upcomming.map((data, index) => (
+                        <span
+                            key={index}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                            }}
+                        >
+                            {getWeatherIcon(data.condition, "70", "70", {})}
+                            <h4
                                 style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    justifyContent: "center",
+                                    fontSize: "10px",
+                                    marginLeft: "30px",
+                                    marginTop: "-4px",
+                                    fontWeight: 100,
                                 }}
                             >
-                                {getWeatherIcon(data.condition, "70", "70", {})}
-                                <h4
-                                    style={{
-                                        fontSize: "10px",
-                                        marginLeft: "30px",
-                                        marginTop: "-4px",
-                                        fontWeight: 100,
-                                    }}
-                                >
-                                    {data.day}
-                                </h4>
-                            </span>
-                        );
-                    })}
+                                {data.day}
+                            </h4>
+                        </span>
+                    ))}
                 </UpcomingWeatherWrapper>
             </WeatherContainer>
         )
@@ -131,7 +141,7 @@ const CurrentWeatherWrapper = styled.div`
     transform: translateY(-50%);
     display: flex;
     gap: 5px;
-    alignitems: center;
+    align-items: center;
 `;
 
 const LocationTitle = styled.span`

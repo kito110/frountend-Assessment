@@ -1,13 +1,13 @@
 import React from "react";
 
 interface ConditionProps {
-    conditionValue: string; 
+    conditionValue: string;
     listId?: React.Key;
+    children?: React.ReactNode;
 }
 
 const Condition: React.FC<ConditionProps> = ({ conditionValue, listId, children }) => {
-    // Render children only if the condition is met
-    return conditionValue ? <div>{listId && children}</div> : null;
+    return conditionValue ? <div>{listId !== undefined ? children : null}</div> : null;
 };
 
 export default Condition;

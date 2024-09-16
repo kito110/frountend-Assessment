@@ -14,14 +14,14 @@ type PageData = {
 type ComponentType = "button" | "weather" | "condition" | "image";
 
 interface Variable {
-    name: string | number;
-    initialValue: any;
+    name: string;
+    initialValue: string;
 }
 
 interface ComponentOptions {
     text?: string;
-    variable?: string | number;
-    value?: any;
+    variable?: string;
+    value?: string;
     lon?: number;
     lat?: number;
     src?: string;
@@ -29,15 +29,15 @@ interface ComponentOptions {
 }
 
 interface ComponentData {
-    id: string | number;
+    id: number;
     type: ComponentType;
     options: ComponentOptions;
-    children?: string | number;
+    children?: number;
 }
 
 interface List {
-    id: React.Key;
-    components: (string | number)[];
+    id: number;
+    components: number[];
 }
 
 interface PageId {
@@ -66,10 +66,16 @@ const Page: React.FC<PageId> = ({ pageId }) => {
 
                 // Initialize variables state
                 if (data?.variables) {
-                    const initialVariables = data.variables.reduce((acc: { [x: string]: any; }, variable: { name: string | number; initialValue: any; }) => {
-                        acc[variable.name] = variable.initialValue;
-                        return acc;
-                    }, {} as Record<string | number, any>);
+                    const initialVariables = data.variables.reduce(
+                        (
+                            acc: { [x: string]: any },
+                            variable: { name: string | number; initialValue: any }
+                        ) => {
+                            acc[variable.name] = variable.initialValue;
+                            return acc;
+                        },
+                        {} as Record<string | number, any>
+                    );
                     setVariables(initialVariables);
                 }
             } catch (err) {
@@ -87,20 +93,18 @@ const Page: React.FC<PageId> = ({ pageId }) => {
         }));
     };
 
-    const componentMapById: Record<string | number, ComponentData> = (
-        pageData?.components || []
-    ).reduce((acc, component) => {
-        acc[component.id] = component;
-        return acc;
-    }, {} as Record<string | number, ComponentData>);
-
-    const listMapById: Record<string | number, List> = (pageData?.lists || []).reduce(
-        (acc, list) => {
-            acc[list.id] = list;
+    const componentMapById: Record<number, ComponentData> = (pageData?.components || []).reduce(
+        (acc, component) => {
+            acc[component.id] = component;
             return acc;
         },
-        {} as Record<string | number, List>
+        {} as Record<number, ComponentData>
     );
+
+    const listMapById: Record<number, List> = (pageData?.lists || []).reduce((acc, list) => {
+        acc[list.id] = list;
+        return acc;
+    }, {} as Record<number, List>);
 
     const renderComponent = (componentData: ComponentData) => {
         const { type, options } = componentData;
@@ -116,7 +120,7 @@ const Page: React.FC<PageId> = ({ pageId }) => {
             case "condition":
                 // render all the child components linked
                 const conditionValue = variables[options.variable || ""];
-                const listId = componentData.children;
+                const listId = componentData.children as number;
                 if (conditionValue === options.value && listId !== undefined) {
                     const list = listMapById[listId];
                     if (list) {
